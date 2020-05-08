@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>PKNF</title>
+</head>
+<body onload="createController()">
+<div>
+    <form name="form" class="calculator-container">
+        <label>Построить СКНФ</label>
+        <br/>
+        <input class="form-control input-panel" id="panel" name="panel" placeholder="0"/>
+        <div class="btn-container">
+            <input class="form-group btn btn-default btn-danger" name="btnCheck" type="button" value="Построить"
+                   onclick="controller.makePKNF()"/>
+        </div>
+        <label id="result"></label>
+        <table id="table" class="table table-striped">
+        </table>
+    </form>
+</div>
+
+<div>
+    <form name="form" class="calculator-container">
+        <label>Тестирование СДНФ</label>
+        <br/>
+        <input class="form-control input-panel" id="formula" name="panel" placeholder="0"/>
+        <label id="abc"> </label>
+        <div class="btn-container">
+            <input class="form-group btn btn-default btn-danger" style="font-size: 13px;" name="btnCheck" type="button" value="Сгенерировать"
+                   onclick="controller.createFormula()"/>
+            <input class="form-group btn btn-default btn-danger" style="font-size: 13px;" name="btnCheck" type="button" value="Очистить"
+                   onclick="controller.clearTest()"/>
+            <input class="form-group btn btn-default btn-danger" style="font-size: 13px;" name="btnCheck" type="button" value="Проверить"
+                   onclick="controller.checkTesting()"/>
+                      
+        </div>
+        <input disabled class="form-control input-panel" id="resultTesting" name="panel" placeholder="0"/>
+        <table id="testTable" class="table table-striped">
+            <label id="result"></label>
+        </table>
+        <label id="resultTest"></label>
+    </form>
+</div>
+
+<script src="./assets/js/jquery-3.3.1.slim.min.js"></script>
+<script src="./assets/js/bootstrap.min.js"></script>
+<script src="logic.js"></script>
+</body>
+</html>
