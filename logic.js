@@ -34,7 +34,9 @@ class Controller {
         let countRow = Math.pow(2, arrayWithLiteral.length);
         let table = this.holder.madeTruthTable(arrayWithLiteral, countRow, formula);
         
-        let result = this.holder.makePKNF(table, arrayWithLiteral, countRow);
+        let resultArray = this.holder.makePKNF(table, arrayWithLiteral, countRow);
+        let result = this.holder.makeStringPKNF(resultArray);
+       
 
         this.calculatorView.renderTable(table, arrayWithLiteral, false);
         this.calculatorView.renderTextResult("СКНФ: " + result);
@@ -127,31 +129,19 @@ class Controller {
       }
 
     addTestKnf(rows, index) {
-        this.testKnf.push(this.holder.makeSubFormulaForRow(rows[index], this.arrayOfSymbols, false));
-        document.getElementById("resultTesting").value = this.getResultTestKnf()
+        let subFormula = this.holder.makeSubFormulaForRow(rows[index], this.arrayOfSymbols);
+        if (!this.testKnf.includes(subFormula)) {
+            this.testKnf.push(subFormula);
+            document.getElementById("resultTesting").value = this.getResultTestKnf();
+        }
     }
 
     getResultTestKnf() {
-        let result = ""
-        if (this.testKnf.length > 1) {
-            result += "(";
-        }
-
-        for (let i = 0; i < this.testKnf.length; i++) {
-            result +=  "(" + this.testKnf[i] + ")";
-            if (i != this.testKnf.length - 1) {
-                result += "&"
-            }
-        }
-        if (this.testKnf.length > 1) {
-            result += ")";
-        }
-
-        return result;
+        let array = this.testKnf.slice(0);
+        return this.holder.makeStringPKNF(array);
     }
 
     checkTesting() {
-        let generatedByUserResult = this.getResultTestKnf();
         let formula = document.getElementById('formula').value;
        
         if (!this.holder.checkBracket(formula)) {
@@ -170,24 +160,15 @@ class Controller {
         let countRow = Math.pow(2, arrayWithLiteral.length);
         let table = this.holder.madeTruthTable(arrayWithLiteral, countRow, formula);
         
-        let result = this.holder.makePKNF(table, arrayWithLiteral, countRow);
-        let membersNumber = this.calculateMembers(table);
-        let resArray = result.split("&");
-        if (membersNumber != 1) {
-            resArray = result.substring(1, result.length - 1).split("&");
-        }
-        let testingResultArray = generatedByUserResult.split("&");
-        if (membersNumber != 1) {
-            testingResultArray = generatedByUserResult.substring(1, generatedByUserResult.length - 1).split("&");
-        }
-
+        let resultArray = this.holder.makePKNF(table, arrayWithLiteral, countRow);
+        
         let resSet = new Set();
-        for (let i = 0; i < resArray.length; i++) {
-            resSet.add(resArray[i])
+        for (let i = 0; i < resultArray.length; i++) {
+            resSet.add(resultArray[i])
         }
         let testingResultSet = new Set();
-        for (let i = 0; i < testingResultArray.length; i++) {
-            testingResultSet.add(testingResultArray[i])
+        for (let i = 0; i < this.testKnf.length; i++) {
+            testingResultSet.add(this.testKnf[i])
         }
 
         let testingResult = this.eqSet(resSet, testingResultSet);
@@ -195,20 +176,10 @@ class Controller {
         if (testingResult == true) {
             this.calculatorView.renderTestingTextResult("Ответ верный")
         } else {
+            let result = this.holder.makeStringPKNF(resultArray);
             this.calculatorView.renderTestingTextResult("Ответ неверный" + "\n" + "Правильная формула -" + "\n" + result)
         }
         
-    }
-
-    calculateMembers(table) {
-        let resIndex = table[0].length - 1;
-        let count = 0;
-        for (let i = 0; i < table.length; i++) {
-            if (table[i][resIndex] === '0') {
-                count += 1
-            }
-        }
-        return count;
     }
 
     eqSet(as, bs) {
@@ -288,40 +259,21 @@ class ExpressionHolder {
 
     makePKNF(table, arrayWithLiteral, countRow) {
         let resultColumn = arrayWithLiteral.length;
-        let result = "";
-        if (arrayWithLiteral.length > 1) {
-            result += "(";
-        }
         let array = [];
-        let additionalBrackets = (this.calculatePKNFElements(table, arrayWithLiteral, countRow) > 1);
         
         for (let index = 0; index < countRow; index++) {
             if (table[index][resultColumn] === "0") {
-                let formula = this.makeSubFormulaForRow(table[index], arrayWithLiteral, additionalBrackets);
+                let formula = this.makeSubFormulaForRow(table[index], arrayWithLiteral);
                 array.push(formula);
             }
         }
-        result += array.join("&");
-        if (arrayWithLiteral.length > 1) {
-            result += ")";
-        }
-        return result;
+
+        return array;
     }
 
-    calculatePKNFElements(table, arrayWithLiteral, countRow) {
-        let resultColumn = arrayWithLiteral.length;
-        let elementCount = 0
-        for (let index = 0; index < countRow; index++) {
-            if (table[index][resultColumn] === "0") {
-                elementCount = elementCount + 1
-            }
-        }
-        return elementCount
-    }
-
-    makeSubFormulaForRow(row, arrayWithLiteral, additionalBrackets) {
+    makeSubFormulaForRow(row, arrayWithLiteral) {
         let formula = "";
-        if (arrayWithLiteral.length > 1 && additionalBrackets) {
+        if (arrayWithLiteral.length > 1) {
             formula += "(";
         }
         for (let index = 0; index < arrayWithLiteral.length; index++) {
@@ -334,10 +286,29 @@ class ExpressionHolder {
                 formula += "|";
             }
         }
-        if (arrayWithLiteral.length > 1 && additionalBrackets) {
+        if (arrayWithLiteral.length > 1) {
             formula += ")";
         }
         return formula;
+    }
+
+    fixBrackets(array) {
+        if (array.length > 1) {
+            for (let i = 1; i < array.length; i++) {
+                array[i] += ')';
+            }
+
+            let leftBrackets = "";
+            for (let i = 1; i < array.length; i++) {
+                leftBrackets += '(';
+            }
+            array[0] = leftBrackets + array[0];
+        }
+    }
+
+    makeStringPKNF(pknfArray) {
+        this.fixBrackets(pknfArray);
+        return pknfArray.join("&");
     }
 
     madeTruthTable(arrayWithLiteral, countRow, formula) {
