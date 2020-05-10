@@ -272,23 +272,19 @@ class ExpressionHolder {
     }
 
     makeSubFormulaForRow(row, arrayWithLiteral) {
-        let formula = "";
-        if (arrayWithLiteral.length > 1) {
-            formula += "(";
-        }
+        let array = [];
+        
         for (let index = 0; index < arrayWithLiteral.length; index++) {
             if (row[index] === "1") {
-                formula += "(!" + arrayWithLiteral[index] + ")";
+                array.push("(!" + arrayWithLiteral[index] + ")");
             } else {
-                formula += arrayWithLiteral[index];
-            }
-            if (index != arrayWithLiteral.length - 1) {
-                formula += "|";
+                array.push(arrayWithLiteral[index]);
             }
         }
-        if (arrayWithLiteral.length > 1) {
-            formula += ")";
-        }
+
+        this.fixBrackets(array);
+        let formula = array.join('|');
+        
         return formula;
     }
 
